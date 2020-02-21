@@ -22,10 +22,12 @@ IntervalTimer dynaTimer;
 // * Set ID and 1000000 bps
 
 // FIX
-// * Range: 250--750 (for now)
-// * CW Angle Limit: 250
-// * CCW Angle Limit: 750
+// * Range: 500 (for now, e.g. 250--750)
+// * CW Angle Limit: 150--400
+// * CCW Angle Limit: 650--900
 // * Torque Limit: 1023
+
+// TODO: Use variables to set ranges/offsets for each arm
 
 // DYNAMIXEL
 /////////////
