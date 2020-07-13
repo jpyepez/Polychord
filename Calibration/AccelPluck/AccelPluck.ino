@@ -18,12 +18,20 @@
 #include <AccelStepper.h>
 #include <Metro.h>
 
-#define SLEEP 2
-#define STEP 1
-#define DIR 0
-#define MS0 5
-#define MS1 6
-#define MS2 7
+//#define SLEEP 2
+//#define STEP 1
+//#define DIR 0
+//#define MS0 5
+//#define MS1 6
+//#define MS2 7
+
+// PCB 1.0
+#define DIR 24
+#define STEP 25
+#define SLEEP 26
+#define MS0 28
+#define MS1 29
+#define MS2 30
 
 AccelStepper stp(AccelStepper::DRIVER, STEP, DIR);
 

@@ -15,9 +15,10 @@ Metro servoMetro = Metro(1000);
 // mute: 0
 
 UServo clamper(33);
-int clamperTargets[] = {750};
+// int clamperTargets[] = {750};
 // int clamperTargets[] = {300, 1200};
 // int clamperTargets[] = {0, 600, 600, 600, 600, 600, 575, 550};
+int clamperTargets[] = {0, 450};
 
 uint32_t servoCounter = 0;
 
