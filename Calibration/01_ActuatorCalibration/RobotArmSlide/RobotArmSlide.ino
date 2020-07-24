@@ -32,7 +32,8 @@ IntervalTimer dynaTimer;
 // DYNAMIXEL
 /////////////
 // int dynaTargets[] = {250, 1000};
-int dynaTargets[] = {500, 1000};
+// int dynaTargets[] = {500, 1000};
+int dynaTargets[] = {500, 800};
 uint32_t idx = 0;
 
 // PROGRAM
@@ -56,7 +57,7 @@ void loop()
 void dynaMove()
 {
     //Dynamixel.moveSpeed(MX64ID, dynaTargets[idx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 64);
-    Dynamixel.moveSpeed(MX64ID, dynaTargets[idx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 128);
+    Dynamixel.moveSpeed(MX64ID, dynaTargets[idx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 32);
     Dynamixel.ledStatus(MX64ID, (1 + idx) % 2);
     idx++;
 }

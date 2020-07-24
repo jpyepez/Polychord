@@ -18,14 +18,14 @@
 #include <AccelStepper.h>
 #include <Metro.h>
 
-//#define SLEEP 2
-//#define STEP 1
 //#define DIR 0
+//#define STEP 1
+//#define SLEEP 2
 //#define MS0 5
 //#define MS1 6
 //#define MS2 7
 
-// PCB 1.0
+// PCB 1.0: Picker
 #define DIR 24
 #define STEP 25
 #define SLEEP 26
@@ -33,15 +33,23 @@
 #define MS1 29
 #define MS2 30
 
+// PCB 1.0: Lift
+//#define DIR 4
+//#define STEP 5
+//#define SLEEP 6
+//#define MS0 9
+//#define MS1 10
+//#define MS2 11
+
 AccelStepper stp(AccelStepper::DRIVER, STEP, DIR);
 
-Metro stpMetro = Metro(150);
+Metro stpMetro = Metro(250);
 
 int target = 80;
 uint32_t idx = 0;
 boolean isAtTarget = true;
 
-bool modes[] = {true, false, true};
+bool modes[] = {false, true, false};
 
 void setup() {
   initPins(modes);
