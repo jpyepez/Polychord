@@ -3,6 +3,7 @@
 
 #include <AccelStepper.h>
 #include <DynamixelSerial.h>
+#include "UServo.h"
 #include <Metro.h>
 
 // Azure 1.1: Pickwheel
@@ -23,6 +24,22 @@
 
 // Dynamixel ID
 #define MX64ID 1
+
+
+// CLAMPER SETUP
+/////////////////
+// servo range: 300-1200
+// open: 0
+Metro pmMetro = Metro(2000);
+UServo pmServo(33);
+int pmTargets[] = {475, 750, 0, 0};
+uint32_t pmCounter = 0;
+
+Metro clMetro = Metro(1000);
+UServo clServo(34);
+int clTargets[] = {450, 750, 0, 0};
+uint32_t clCounter = 0;
+
 
 // STEPPER SETUP
 /////////////////
@@ -53,6 +70,10 @@ int dynaTargets[] = {500, 800};
 uint32_t dynaIdx = 0;
 
 void setup() {
+
+  // servomotors
+  pmServo.init();
+  clServo.init();
   
   // stepper motors
   initPins(wModes, lModes);
@@ -71,6 +92,17 @@ void setup() {
 }
 
 void loop() {
+
+  if( pmMetro.check() == 1) {
+    pmCounter++;
+  }
+  pmServo.move(pmTargets[pmCounter % (sizeof(pmTargets) / sizeof(pmTargets[0]))]);
+
+  if( clMetro.check() == 1) {
+    clCounter++;
+  }
+  clServo.move(clTargets[clCounter % (sizeof(clTargets) / sizeof(clTargets[0]))]);
+  
   stpMove(lMetro, LSLEEP, lift, lTargets, lIsAtTarget, lIdx);
   stpMove(wMetro, WSLEEP, wheel, wTargets, wIsAtTarget, wIdx);
 

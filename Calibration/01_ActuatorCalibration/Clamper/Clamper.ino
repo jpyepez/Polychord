@@ -12,7 +12,7 @@ Metro servoMetro = Metro(1000);
 // SERVO
 //////////////////
 // servo range: 300-1200
-// mute: 0
+// open: 0
 
 UServo clamper(33);
 // int clamperTargets[] = {750};
