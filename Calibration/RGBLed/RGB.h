@@ -16,6 +16,9 @@ private:
     int redPin;
     int greenPin;
     int bluePin;
+    int redVal;
+    int greenVal;
+    int blueVal;
 
 public:
     RGB(int, int, int);
@@ -24,7 +27,9 @@ public:
     void init(int, int, int);
     void set(int, int, int);
 
-    int getRed() { return redPin; };
+    int getRed() { return redVal; };
+    int getGreen() { return greenVal; };
+    int getBlue() { return blueVal; };
 };
 
 #endif

@@ -8,7 +8,7 @@
 #include "Arduino.h"
 #include "RGB.h"
 
-RGB::RGB(int rPin, int gPin, int bPin)
+RGB::RGB(int rPin, int gPin, int bPin) : redVal(0), greenVal(0), blueVal(0)
 {
 
     redPin = rPin;
@@ -32,6 +32,9 @@ void RGB::init(int rPin, int gPin, int bPin)
 
 void RGB::set(int rValue, int gValue, int bValue)
 {
+    redVal = rValue;
+    greenVal = gValue;
+    blueVal = bValue;
     analogWrite(redPin, rValue);
     analogWrite(greenPin, gValue);
     analogWrite(bluePin, bValue);
