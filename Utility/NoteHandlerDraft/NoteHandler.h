@@ -17,11 +17,14 @@ private:
     int *midiArray;
     int arraySize;
 
+    typedef void (*callback)(int);
+
 public:
     NoteHandler(const int *, const int *, int);
 
     int getPos(int);
     int lookupPos(int);
+    void applyPos(int, callback);
 };
 
 #endif

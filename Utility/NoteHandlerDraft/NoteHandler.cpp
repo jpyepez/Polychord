@@ -41,3 +41,11 @@ int NoteHandler::lookupPos(int midi)
         return -1;
     }
 }
+
+typedef void (*callback)(int);
+
+void NoteHandler::applyPos(int midi, callback cb)
+{
+    int pos = lookupPos(midi);
+    cb(pos);
+}

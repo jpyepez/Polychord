@@ -61,6 +61,11 @@ void serialRead()
     }
 }
 
+void printInt(int x)
+{
+    Serial.println(x);
+}
+
 void parseAndPrintData()
 {
     if (newData == true)
@@ -71,7 +76,7 @@ void parseAndPrintData()
 
         // Note Handler Lookup
         int val = atoi(receivedChars);
-        Serial.println(noteHandler.lookupPos(val));
+        noteHandler.applyPos(val, printInt);
 
         newData = false;
     }
