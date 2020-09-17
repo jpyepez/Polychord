@@ -9,21 +9,18 @@
 #include <Metro.h>
 
 #define RPIN 36
-#define BPIN 35
 #define GPIN 37
+#define BPIN 35
 
 Metro rgbMetro = Metro(2000);
 
-RGB rgb(37, 36, 35);
+RGB rgb(RPIN, GPIN, BPIN);
 uint32_t rgbCounter = 0;
 
 void setup()
 {
-    //rgb.init();
+    rgb.init();
     Serial.begin(9600);
-    pinMode(37, OUTPUT);
-    pinMode(36, OUTPUT);
-    pinMode(35, OUTPUT);
 }
 
 void loop()
@@ -50,7 +47,7 @@ void loop()
             rgb.set(0, 255, 255);
             break;
         case 5:
-            rgb.set(255, 0, 255);
+            rgb.set(255, 255, 0);
             break;
         case 6:
             rgb.set(0, 0, 0);

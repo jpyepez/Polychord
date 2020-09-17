@@ -2,12 +2,11 @@
 #include "NoteHandler.h"
 #include <Metro.h>
 
-// TODO: callbacks or functions
 
 const int PSIZE = 5;
-int midi[PSIZE] = {60, 61, 62, 63, 64};
+int midiNotes[PSIZE] = {60, 61, 62, 63, 64};
 int pos[PSIZE] = {1000, 1100, 1200, 1300, 1400};
-NoteHandler noteHandler(midi, pos, PSIZE);
+NoteHandler noteHandler(midiNotes, pos, PSIZE);
 
 Metro metro = Metro(1000);
 
@@ -27,6 +26,7 @@ void loop()
 {
     serialRead();
     parseAndPrintData();
+    
     //if (metro.check() == 1)
     //{
     //    Serial.println(noteHandler.lookupPos(60));

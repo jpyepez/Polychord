@@ -52,6 +52,8 @@ Metro lMetro = Metro(2000);
 
 int wTargets[] = {0, 800};
 int lTargets[] = {0, 400};
+// int wTargets[] = {0};
+// int lTargets[] = {0};
 uint32_t wIdx = 0;
 uint32_t lIdx = 0;
 boolean wIsAtTarget = true;
@@ -150,7 +152,7 @@ void stpMove(Metro &metro, int sleepPin, AccelStepper &stp, int targets[], bool 
 
 void dynaMove()
 {
-    Dynamixel.moveSpeed(MX64ID, dynaTargets[dynaIdx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 32);
+    Dynamixel.moveSpeed(MX64ID, dynaTargets[dynaIdx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 64);
     Dynamixel.ledStatus(MX64ID, (1 + dynaIdx) % 2);
     dynaIdx++;
 }
