@@ -2,6 +2,7 @@
 #include "KeyInput.h"
 
 KeyInput key;
+int val; // output value
 
 void setup()
 {
@@ -12,6 +13,9 @@ void setup()
 void loop()
 {
     key.serialRead();
-    key.printData();
+    //key.printData();
+    key.getDataInt(&val);
+    if (key.checkNewData())
+        Serial.println(val);
     key.clearData();
 }

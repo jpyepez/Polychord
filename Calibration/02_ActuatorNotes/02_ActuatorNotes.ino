@@ -6,6 +6,7 @@
 #include "UServo.h"
 #include <Metro.h>
 #include "NoteHandler.h"
+#include "KeyInput.h"
 
 // I/O SETUP
 // Azure 1.1: Pickwheel
@@ -27,6 +28,9 @@
 // Dynamixel ID
 #define MX64ID 1
 
+// KeyInput setup
+KeyInput key;
+int keyVal;
 
 // NoteHandler setup
 const int PSIZE = 5;
@@ -53,7 +57,6 @@ bool newData = false;
 //int clTargets[] = {450, 750, 0, 0};
 //uint32_t clCounter = 0;
 
-
 // STEPPER SETUP
 /////////////////
 
@@ -75,27 +78,19 @@ bool newData = false;
 //bool wModes[] = {false, true, false};
 //bool lModes[] = {false, true, false};
 
-// DYNAMIXEL SETUP
-/////////////////////
-
-// Timer
-IntervalTimer dynaTimer;
-
-int dynaTargets[] = {500, 800};
-uint32_t dynaIdx = 0;
-
-void setup() {
+void setup()
+{
 
   // servomotors
-//  pmServo.init();
-//  clServo.init();
-  
+  //  pmServo.init();
+  //  clServo.init();
+
   // stepper motors
-//  initPins(wModes, lModes);
-//  wheel.setMaxSpeed(20000);
-//  wheel.setAcceleration(40000);
-//  lift.setMaxSpeed(20000);
-//  lift.setAcceleration(40000);
+  //  initPins(wModes, lModes);
+  //  wheel.setMaxSpeed(20000);
+  //  wheel.setAcceleration(40000);
+  //  lift.setMaxSpeed(20000);
+  //  lift.setAcceleration(40000);
 
   // dynamixel
   Serial1.setTX(1);
@@ -103,26 +98,35 @@ void setup() {
   pinMode(2, OUTPUT);
   Dynamixel.begin(1000000, 2, 4);
   Dynamixel.setAngleLimit(1, 250, 1200);
-  dynaTimer.begin(dynaMove, 1000000);
 }
 
-void loop() {
-  Serial.println("yeah");
-//  if( pmMetro.check() == 1) {
-//    pmCounter++;
-//  }
-//  pmServo.move(pmTargets[pmCounter % (sizeof(pmTargets) / sizeof(pmTargets[0]))]);
-//
-//  if( clMetro.check() == 1) {
-//    clCounter++;
-//  }
-//  clServo.move(clTargets[clCounter % (sizeof(clTargets) / sizeof(clTargets[0]))]);
-//  
-//  stpMove(lMetro, LSLEEP, lift, lTargets, lIsAtTarget, lIdx);
-//  stpMove(wMetro, WSLEEP, wheel, wTargets, wIsAtTarget, wIdx);
+void loop()
+{
+  key.serialRead();
+  key.printData();
+  key.getDataInt(&keyVal);
+  if (key.checkNewData())
+  {
+    Serial.print("Position: ");
+    Serial.println(noteHandler.lookupPos(keyVal));
+  }
+  key.clearData();
 
-//  lift.run();
-//  wheel.run();
+  //  if( pmMetro.check() == 1) {
+  //    pmCounter++;
+  //  }
+  //  pmServo.move(pmTargets[pmCounter % (sizeof(pmTargets) / sizeof(pmTargets[0]))]);
+  //
+  //  if( clMetro.check() == 1) {
+  //    clCounter++;
+  //  }
+  //  clServo.move(clTargets[clCounter % (sizeof(clTargets) / sizeof(clTargets[0]))]);
+  //
+  //  stpMove(lMetro, LSLEEP, lift, lTargets, lIsAtTarget, lIdx);
+  //  stpMove(wMetro, WSLEEP, wheel, wTargets, wIsAtTarget, wIdx);
+
+  //  lift.run();
+  //  wheel.run();
 }
 
 // FUNCTIONS
@@ -165,7 +169,7 @@ void loop() {
 
 void dynaMove()
 {
-    Dynamixel.moveSpeed(MX64ID, dynaTargets[dynaIdx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 64);
-    Dynamixel.ledStatus(MX64ID, (1 + dynaIdx) % 2);
-    dynaIdx++;
+  Dynamixel.moveSpeed(MX64ID, dynaTargets[dynaIdx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 64);
+  Dynamixel.ledStatus(MX64ID, (1 + dynaIdx) % 2);
+  dynaIdx++;
 }
