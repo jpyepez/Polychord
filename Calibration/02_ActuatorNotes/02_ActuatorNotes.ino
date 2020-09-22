@@ -3,8 +3,8 @@
 
 #include <AccelStepper.h>
 #include <DynamixelSerial.h>
+#include <Ramp.h>
 #include "UServo.h"
-#include <Metro.h>
 #include "NoteHandler.h"
 #include "KeyInput.h"
 
@@ -38,138 +38,136 @@ int midiNotes[PSIZE] = {59, 60, 61, 62, 63};
 int pos[PSIZE] = {500, 600, 700, 800, 900};
 NoteHandler noteHandler(midiNotes, pos, PSIZE);
 
-// Serial input
-const byte numChars = 32;
-char receivedChars[numChars];
-bool newData = false;
-
 // CLAMPER SETUP
 /////////////////
 // servo range: 300-1200
 // open: 0
-//Metro pmMetro = Metro(2000);
-//UServo pmServo(33);
-//int pmTargets[] = {475, 750, 0, 0};
-//uint32_t pmCounter = 0;
-//
-//Metro clMetro = Metro(1000);
-//UServo clServo(34);
-//int clTargets[] = {450, 750, 0, 0};
-//uint32_t clCounter = 0;
+// < 750: clamp
+// > 750: damp
+
+UServo clServo(34);
+rampInt clRamp;
+
+// UServo pmServo(33);
 
 // STEPPER SETUP
 /////////////////
 
-//AccelStepper wheel(AccelStepper::DRIVER, WSTEP, WDIR);
-//AccelStepper lift(AccelStepper::DRIVER, LSTEP, LDIR);
-//
-//Metro wMetro = Metro(1000);
-//Metro lMetro = Metro(2000);
-//
-//int wTargets[] = {0, 800};
-//int lTargets[] = {0, 400};
-//// int wTargets[] = {0};
-//// int lTargets[] = {0};
-//uint32_t wIdx = 0;
-//uint32_t lIdx = 0;
-//boolean wIsAtTarget = true;
-//boolean lIsAtTarget = true;
-//
-//bool wModes[] = {false, true, false};
-//bool lModes[] = {false, true, false};
+AccelStepper wheel(AccelStepper::DRIVER, WSTEP, WDIR);
+int wPins[] = {WMS0, WMS1, WMS2};
+bool wModes[] = {false, true, false};
+
+AccelStepper lift(AccelStepper::DRIVER, LSTEP, LDIR);
+int lPins[] = {LMS0, LMS1, LMS2};
+bool lModes[] = {false, true, false};
 
 void setup()
 {
-
-  // servomotors
+  // servomotors init
+  clServo.init();
+  clRamp.go(0);
   //  pmServo.init();
-  //  clServo.init();
 
-  // stepper motors
-  //  initPins(wModes, lModes);
-  //  wheel.setMaxSpeed(20000);
-  //  wheel.setAcceleration(40000);
-  //  lift.setMaxSpeed(20000);
-  //  lift.setAcceleration(40000);
+  // stepper motors init
+  initPins(WSLEEP, wPins, wModes);
+  wheel.setMaxSpeed(20000);
+  wheel.setAcceleration(40000);
+  initPins(LSLEEP, lPins, lModes);
+  lift.setMaxSpeed(20000);
+  lift.setAcceleration(40000);
 
-  // dynamixel
+  // dynamixel init
   Serial1.setTX(1);
   Serial1.setRX(0);
   pinMode(2, OUTPUT);
   Dynamixel.begin(1000000, 2, 4);
   Dynamixel.setAngleLimit(1, 250, 1200);
+
+  // print instructions
+  Serial.println("Input MIDI notes:");
+  Serial.println("(59--63)");
 }
 
 void loop()
 {
+  // get keyboard input
   key.serialRead();
   key.printData();
   key.getDataInt(&keyVal);
+
+  // handle input (pluck)
   if (key.checkNewData())
   {
-    Serial.print("Position: ");
-    Serial.println(noteHandler.lookupPos(keyVal));
+    noteHandler.applyPos(keyVal, dynaMove);
+    stpMove(wheel, WSLEEP, 800);
+    clRamp.go(0);
+    clRamp.go(100, 500, LINEAR, ONCEFORWARD);
   }
+
+  // clear keyboard input
   key.clearData();
 
-  //  if( pmMetro.check() == 1) {
-  //    pmCounter++;
-  //  }
-  //  pmServo.move(pmTargets[pmCounter % (sizeof(pmTargets) / sizeof(pmTargets[0]))]);
-  //
-  //  if( clMetro.check() == 1) {
-  //    clCounter++;
-  //  }
-  //  clServo.move(clTargets[clCounter % (sizeof(clTargets) / sizeof(clTargets[0]))]);
-  //
-  //  stpMove(lMetro, LSLEEP, lift, lTargets, lIsAtTarget, lIdx);
-  //  stpMove(wMetro, WSLEEP, wheel, wTargets, wIsAtTarget, wIdx);
+  // stop plucker
+  stpStop(wheel, WSLEEP);
 
-  //  lift.run();
-  //  wheel.run();
+  clamp();
+
+  wheel.run();
+  lift.run();
 }
 
 // FUNCTIONS
 ///////////////
 
-//void initPins(bool wModes[], bool lModes[]) {
-//  pinMode(WSLEEP, OUTPUT);
-//  pinMode(WMS0, OUTPUT);
-//  pinMode(WMS1, OUTPUT);
-//  pinMode(WMS2, OUTPUT);
-//
-//  digitalWrite(WMS0, wModes[0]);
-//  digitalWrite(WMS1, wModes[1]);
-//  digitalWrite(WMS2, wModes[2]);
-//
-//  pinMode(LSLEEP, OUTPUT);
-//  pinMode(LMS0, OUTPUT);
-//  pinMode(LMS1, OUTPUT);
-//  pinMode(LMS2, OUTPUT);
-//
-//  digitalWrite(LMS0, lModes[0]);
-//  digitalWrite(LMS1, lModes[1]);
-//  digitalWrite(LMS2, lModes[2]);
-//}
-
-//void stpMove(Metro &metro, int sleepPin, AccelStepper &stp, int targets[], bool &isAtTarget, uint32_t &idx) {
-//  // set stepper target every interval
-//  if (metro.check() == 1) {
-//    digitalWrite(sleepPin, HIGH);
-//    stp.moveTo(targets[idx % 2]);
-//    isAtTarget = false;
-//    idx++;
-//  }
-//  // disable stepper when at target
-//  if (stp.distanceToGo() == 0 && !isAtTarget) {
-//    digitalWrite(sleepPin, LOW);
-//    isAtTarget = true;
-//  }
-//}
-
-void dynaMove()
+void initPins(int sleepPin, int msPins[], bool msModes[])
 {
-  Dynamixel.moveSpeed(MX64ID, dynaTargets[dynaIdx % (sizeof(dynaTargets) / sizeof(dynaTargets[0]))], 64);
-  Dynamixel.ledStatus(MX64ID, (1 + dynaIdx) % 2);
-  dynaIdx++;
+  pinMode(WSLEEP, OUTPUT);
+  pinMode(WSLEEP, LOW);
+
+  for (int i = 0; i < 3; i++)
+  {
+    pinMode(msPins[i], OUTPUT);
+    digitalWrite(msPins[i], msModes[i]);
+  }
+}
+
+void stpMove(AccelStepper &stp, int sleepPin, int dist)
+{
+  digitalWrite(sleepPin, HIGH);
+  stp.move(dist);
+}
+
+void stpStop(AccelStepper &stp, int sleepPin)
+{
+  if (stp.distanceToGo() == 0)
+  {
+    digitalWrite(sleepPin, LOW);
+  }
+}
+
+void dynaMove(int target)
+{
+  Dynamixel.moveSpeed(MX64ID, target, 256);
+  //Dynamixel.ledStatus(MX64ID, 1);
+}
+
+void clamp()
+{
+
+  int clCount = clRamp.update();
+
+  if (clRamp.isFinished())
+  {
+    clServo.move(0);
+  }
+  else
+  {
+    clServo.move(550);
+  }
+
+  // Serial.print(clCount);
+  // Serial.print(", ");
+  // Serial.print(clRamp.isRunning());
+  // Serial.print(", ");
+  // Serial.println(clRamp.isFinished());
 }

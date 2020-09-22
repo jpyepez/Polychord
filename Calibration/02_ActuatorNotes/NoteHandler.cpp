@@ -49,5 +49,6 @@ typedef void (*callback)(int);
 void NoteHandler::applyPos(int midiNote, callback cb)
 {
     int pos = lookupPos(midiNote);
-    cb(pos);
+    if (pos != -1)
+        cb(pos);
 }
