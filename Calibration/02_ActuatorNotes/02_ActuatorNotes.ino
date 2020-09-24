@@ -1,5 +1,5 @@
-// All Actuators
-// Azure Talos Calibration Script
+// Actuator Notes
+// Azure Talos Keyboard Input Script
 
 #include <AccelStepper.h>
 #include <DynamixelSerial.h>
@@ -33,22 +33,26 @@ KeyInput key;
 int keyVal;
 
 // NoteHandler setup
-const int PSIZE = 5;
-int midiNotes[PSIZE] = {59, 60, 61, 62, 63};
-int pos[PSIZE] = {500, 600, 700, 800, 900};
-NoteHandler noteHandler(midiNotes, pos, PSIZE);
+const int NOTES = 6;
+int midiNotes[NOTES] = {59, 60, 61, 62, 63, 64};
+int pos[NOTES - 1] = {500, 600, 700, 800, 900}; // Arm position array does not include open string
+int clPos[NOTES] = {0, 550, 550, 550, 550, 550};
+NoteHandler armHandler(midiNotes + 1, pos, NOTES - 1);
+NoteHandler clamperHandler(midiNotes, clPos, NOTES);
 
 // CLAMPER SETUP
 /////////////////
 // servo range: 300-1200
 // open: 0
-// < 750: clamp
-// > 750: damp
+// clamper: clamp < 750 < damp
+// pmute: 750 < mute
 
 UServo clServo(34);
 rampInt clRamp;
+uint32_t clVal;
 
-// UServo pmServo(33);
+UServo pmServo(33);
+bool pmuteOn;
 
 // STEPPER SETUP
 /////////////////
@@ -66,7 +70,8 @@ void setup()
   // servomotors init
   clServo.init();
   clRamp.go(0);
-  //  pmServo.init();
+  pmServo.init();
+  pmuteOn = false;
 
   // stepper motors init
   initPins(WSLEEP, wPins, wModes);
@@ -85,7 +90,8 @@ void setup()
 
   // print instructions
   Serial.println("Input MIDI notes:");
-  Serial.println("(59--63)");
+  Serial.println("(59--64)");
+  Serial.println("Palm mute: 11-on, 10-off");
 }
 
 void loop()
@@ -98,10 +104,17 @@ void loop()
   // handle input (pluck)
   if (key.checkNewData())
   {
-    noteHandler.applyPos(keyVal, dynaMove);
-    stpMove(wheel, WSLEEP, 800);
-    clRamp.go(0);
-    clRamp.go(100, 500, LINEAR, ONCEFORWARD);
+    if (keyVal == 10) pmuteOn = false;        // mute off
+    else if (keyVal == 11) pmuteOn = true;    // mute on
+    else {                                    // pluck
+      armHandler.applyPos(keyVal, dynaMove);
+      clamperHandler.applyPos(keyVal, setClamper);
+      stpMove(wheel, WSLEEP, 80);
+      
+      // ramp to release
+      clRamp.go(0);
+      clRamp.go(100, 500, LINEAR, ONCEFORWARD);
+    }
   }
 
   // clear keyboard input
@@ -110,6 +123,7 @@ void loop()
   // stop plucker
   stpStop(wheel, WSLEEP);
 
+  pmute();
   clamp();
 
   wheel.run();
@@ -151,6 +165,10 @@ void dynaMove(int target)
   //Dynamixel.ledStatus(MX64ID, 1);
 }
 
+void setClamper(int target) {
+  clVal = target;
+}
+
 void clamp()
 {
 
@@ -162,7 +180,7 @@ void clamp()
   }
   else
   {
-    clServo.move(550);
+    clServo.move(clVal);
   }
 
   // Serial.print(clCount);
@@ -170,4 +188,12 @@ void clamp()
   // Serial.print(clRamp.isRunning());
   // Serial.print(", ");
   // Serial.println(clRamp.isFinished());
+}
+
+void pmute() {
+  if (!pmuteOn) {
+    pmServo.move(0);
+  } else {
+    if (clRamp.isRunning()) pmServo.move(1200); // only mute if plucking
+  }
 }

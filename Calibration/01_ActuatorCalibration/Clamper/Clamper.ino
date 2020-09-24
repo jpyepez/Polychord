@@ -13,12 +13,15 @@ Metro servoMetro = Metro(1000);
 //////////////////
 // servo range: 300-1200
 // open: 0
+// clamper: clamp < 750 < damp
+// pmute: 750 < mute
 
 UServo clamper(33);
 // int clamperTargets[] = {750};
 // int clamperTargets[] = {300, 1200};
 // int clamperTargets[] = {0, 600, 600, 600, 600, 600, 575, 550};
-int clamperTargets[] = {0, 450};
+// int clamperTargets[] = {0, 750};
+int clamperTargets[] = {0, 1100};
 
 uint32_t servoCounter = 0;
 

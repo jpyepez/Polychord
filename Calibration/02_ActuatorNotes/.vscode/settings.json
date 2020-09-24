@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        ".eslintrc.json": "json",
+        "xutility": "cpp"
+    }
+}
