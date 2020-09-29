@@ -1,12 +1,17 @@
-// Actuator Notes
-// Azure Talos Keyboard Input Script
+// 03_ActuatorMIDI
+// Azure Talos MIDI Integration
 
 #include <AccelStepper.h>
 #include <DynamixelSerial.h>
 #include <Ramp.h>
 #include "UServo.h"
 #include "NoteHandler.h"
-#include "KeyInput.h"
+#include "RGB.h"
+
+// RGB Setup
+#define RPIN 36
+#define GPIN 37
+#define BPIN 35
 
 // I/O SETUP
 // Azure 1.1: Pickwheel
@@ -28,9 +33,7 @@
 // Dynamixel ID
 #define MX64ID 1
 
-// KeyInput setup
-KeyInput key;
-int keyVal;
+RGB rgb(RPIN, GPIN, BPIN);
 
 // NoteHandler setup
 const int NOTES = 6;
@@ -39,6 +42,7 @@ int pos[NOTES - 1] = {500, 600, 700, 800, 900}; // Arm position array does not i
 int clPos[NOTES] = {0, 550, 550, 550, 550, 550};
 NoteHandler armHandler(midiNotes + 1, pos, NOTES - 1);
 NoteHandler clamperHandler(midiNotes, clPos, NOTES);
+bool isPlaying;
 
 // CLAMPER SETUP
 /////////////////
@@ -68,6 +72,17 @@ bool lModes[] = {false, true, false};
 
 void setup()
 {
+  // RGB init
+  rgb.init();
+  rgb.set(0, 255, 0);
+
+  // MIDI Setup
+  usbMIDI.setHandleNoteOn(talosNoteOn);
+  usbMIDI.setHandleNoteOff(talosNoteOff);
+
+  // init state boolean
+  isPlaying = false;
+
   // servomotors init
   clServo.init();
   clRamp.go(0);
@@ -92,6 +107,7 @@ void setup()
   Dynamixel.setAngleLimit(1, 250, 1200);
 
   // print instructions
+  Serial.println("Azure Talos MIDI Integration");
   Serial.println("Input MIDI notes:");
   Serial.println("(59--64)");
   Serial.println("Palm mute: 11-on, 10-off");
@@ -100,35 +116,9 @@ void setup()
 
 void loop()
 {
-  // get keyboard input
-  key.serialRead();
-  key.printData();
-  key.getDataInt(&keyVal);
+  usbMIDI.read();
 
-  // handle input (pluck)
-  if (key.checkNewData())
-  {
-    if (keyVal == 10) pmuteOn = false;        // mute off
-    else if (keyVal == 11) pmuteOn = true;    // mute on
-    else if (keyVal == 20) tremOn = false;    // tremolo off
-    else if (keyVal == 21) tremOn = true;      // tremolo on
-    else {                                    // pluck
-      armHandler.applyPos(keyVal, dynaMove);
-      clamperHandler.applyPos(keyVal, setClamper);
-      uint32_t pickSpeed =  tremOn ? 800 : 80;
-      Serial.println(pickSpeed);
-      stpMove(wheel, WSLEEP, pickSpeed);
-
-      // ramp to release
-      clRamp.go(0);
-      clRamp.go(100, 500, LINEAR, ONCEFORWARD);
-    }
-  }
-
-  // clear keyboard input
-  key.clearData();
-
-  // stop plucker
+  //// stop plucker
   stpStop(wheel, WSLEEP);
 
   pmute();
@@ -173,35 +163,59 @@ void dynaMove(int target)
   //Dynamixel.ledStatus(MX64ID, 1);
 }
 
-void setClamper(int target) {
+void setClamper(int target)
+{
   clVal = target;
 }
 
 void clamp()
 {
+  clServo.move(clVal);
+}
 
-  int clCount = clRamp.update();
-
-  if (clRamp.isFinished())
+void pmute()
+{
+  if (!pmuteOn)
   {
-    clServo.move(0);
+    pmServo.move(0);
   }
   else
   {
-    clServo.move(clVal);
+    if (isPlaying)
+      pmServo.move(1200); // only mute if plucking
   }
-
-  // Serial.print(clCount);
-  // Serial.print(", ");
-  // Serial.print(clRamp.isRunning());
-  // Serial.print(", ");
-  // Serial.println(clRamp.isFinished());
 }
 
-void pmute() {
-  if (!pmuteOn) {
-    pmServo.move(0);
-  } else {
-    if (clRamp.isRunning()) pmServo.move(1200); // only mute if plucking
+void talosNoteOn(byte channel, byte note, byte velocity)
+{
+  isPlaying = true;
+  if (note == 10)
+  {
+    pmuteOn = false;
   }
+  else if (note == 11)
+  {
+    pmuteOn = true;
+  }
+  else if (note == 20)
+  {
+    tremOn = false;
+  }
+  else if (note == 21)
+  {
+    tremOn = true;
+  }
+  else
+  {
+    armHandler.applyPos(note, dynaMove);
+    clamperHandler.applyPos(note, setClamper);
+    uint32_t pickSpeed = tremOn ? 800 : 80;
+    stpMove(wheel, WSLEEP, pickSpeed);
+  }
+}
+
+void talosNoteOff(byte channel, byte note, byte velocity)
+{
+  isPlaying = false;
+  clamperHandler.applyPos(velocity, setClamper);
 }

@@ -39,3 +39,21 @@ void RGB::set(int rValue, int gValue, int bValue)
     analogWrite(greenPin, gValue);
     analogWrite(bluePin, bValue);
 }
+
+void RGB::setRed(int rValue)
+{
+    redVal = rValue;
+    analogWrite(redPin, rValue);
+}
+
+void RGB::setGreen(int gValue)
+{
+    greenVal = gValue;
+    analogWrite(greenPin, gValue);
+}
+
+void RGB::setBlue(int bValue)
+{
+    blueVal = bValue;
+    analogWrite(bluePin, bValue);
+}

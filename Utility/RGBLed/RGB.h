@@ -27,6 +27,10 @@ public:
     void init(int, int, int);
     void set(int, int, int);
 
+    void setRed(int);
+    void setGreen(int);
+    void setBlue(int);
+
     int getRed() { return redVal; };
     int getGreen() { return greenVal; };
     int getBlue() { return blueVal; };
