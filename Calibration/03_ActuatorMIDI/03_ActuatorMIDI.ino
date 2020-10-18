@@ -4,9 +4,13 @@
 #include <AccelStepper.h>
 #include <DynamixelSerial.h>
 #include <Ramp.h>
+#include <Bounce.h>
 #include "UServo.h"
 #include "NoteHandler.h"
 #include "RGB.h"
+
+// String Unit Setup
+#define UNIT_ID 1
 
 // RGB Setup
 #define RPIN 36
@@ -33,13 +37,19 @@
 // Dynamixel ID
 #define MX64ID 1
 
+// RGB Status Indicator
+// Red: Error
+// Yellow: Lift Init
+// Cyan: Lift Reset
+// Green: Ready
 RGB rgb(RPIN, GPIN, BPIN);
+
 
 // NoteHandler setup
 const int NOTES = 6;
 int midiNotes[NOTES] = {59, 60, 61, 62, 63, 64};
 int pos[NOTES - 1] = {500, 600, 700, 800, 900}; // Arm position array does not include open string
-int clPos[NOTES] = {0, 550, 550, 550, 550, 550};
+int clPos[NOTES] = {0, 500, 500, 500, 500, 500};
 NoteHandler armHandler(midiNotes + 1, pos, NOTES - 1);
 NoteHandler clamperHandler(midiNotes, clPos, NOTES);
 bool isPlaying;
@@ -57,6 +67,7 @@ uint32_t clVal;
 
 UServo pmServo(33);
 bool pmuteOn;
+uint32_t pmTarget;
 
 // STEPPER SETUP
 /////////////////
@@ -69,16 +80,23 @@ bool tremOn;
 AccelStepper lift(AccelStepper::DRIVER, LSTEP, LDIR);
 int lPins[] = {LMS0, LMS1, LMS2};
 bool lModes[] = {false, true, false};
+bool isInit = true;
+bool isReset = false;
+
+// limit switch setup
+const int switchPin = 14;
+Bounce lSwitch = Bounce(switchPin, 10); // arg#2 is debounce time in ms
 
 void setup()
 {
   // RGB init
   rgb.init();
-  rgb.set(0, 255, 0);
+  rgb.set(255, 255, 0);
 
   // MIDI Setup
   usbMIDI.setHandleNoteOn(talosNoteOn);
   usbMIDI.setHandleNoteOff(talosNoteOff);
+  usbMIDI.setHandleControlChange(talosControlChange);
 
   // init state boolean
   isPlaying = false;
@@ -89,15 +107,19 @@ void setup()
   pmServo.init();
   pmuteOn = false;
 
+  // palm mute target
+  pmTarget = (UNIT_ID < 4) ? 300 : 1200;
+
   // stepper motors init
   initPins(WSLEEP, wPins, wModes);
   wheel.setMaxSpeed(20000);
   wheel.setAcceleration(40000);
   tremOn = false;
-
   initPins(LSLEEP, lPins, lModes);
   lift.setMaxSpeed(20000);
   lift.setAcceleration(40000);
+  pinMode(switchPin, INPUT_PULLUP);
+  digitalWrite(LSLEEP, HIGH); // enable lift for init
 
   // dynamixel init
   Serial1.setTX(1);
@@ -110,17 +132,19 @@ void setup()
   Serial.println("Azure Talos MIDI Integration");
   Serial.println("Input MIDI notes:");
   Serial.println("(59--64)");
-  Serial.println("Palm mute: 11-on, 10-off");
-  Serial.println("Tremolo picking: 21-on, 20-off");
+  Serial.println("CC Commands:");
+  Serial.println("0 - Tremolo picking");
+  Serial.println("1 - Palm mute");
 }
 
 void loop()
 {
-  usbMIDI.read();
+  if(!isInit) usbMIDI.read();
+  Serial.println(lift.currentPosition());
 
-  //// stop plucker
-  stpStop(wheel, WSLEEP);
-
+  liftReset();
+  vel();
+  pluck();
   pmute();
   clamp();
 
@@ -133,8 +157,8 @@ void loop()
 
 void initPins(int sleepPin, int msPins[], bool msModes[])
 {
-  pinMode(WSLEEP, OUTPUT);
-  pinMode(WSLEEP, LOW);
+  pinMode(sleepPin, OUTPUT);
+  pinMode(sleepPin, LOW);
 
   for (int i = 0; i < 3; i++)
   {
@@ -143,17 +167,22 @@ void initPins(int sleepPin, int msPins[], bool msModes[])
   }
 }
 
-void stpMove(AccelStepper &stp, int sleepPin, int dist)
+void pluck()
 {
-  digitalWrite(sleepPin, HIGH);
-  stp.move(dist);
+  if (tremOn) {
+    if (isPlaying) {
+      wheel.move(40);
+    }
+  } else {
+    if (wheel.distanceToGo() == 0) {
+      digitalWrite(WSLEEP, LOW);
+    }
+  }
 }
 
-void stpStop(AccelStepper &stp, int sleepPin)
-{
-  if (stp.distanceToGo() == 0)
-  {
-    digitalWrite(sleepPin, LOW);
+void vel() {
+  if(lift.distanceToGo() == 0 && !isInit) {
+    digitalWrite(LSLEEP, LOW);
   }
 }
 
@@ -163,14 +192,34 @@ void dynaMove(int target)
   //Dynamixel.ledStatus(MX64ID, 1);
 }
 
-void setClamper(int target)
+void playNote(int target)
+{
+  isPlaying = true;
+
+  // clamp note
+  if (clRamp.isRunning()) clRamp.go(0);
+  clVal = target;
+  // lift move
+  digitalWrite(LSLEEP, HIGH);
+  lift.moveTo(random(-800, 0)); // TODO: map velocities
+  // pluck (or start plucking)
+  digitalWrite(WSLEEP, HIGH);
+  if (!tremOn) wheel.move(80);
+}
+
+void releaseNote(int target)
 {
   clVal = target;
+  if (isPlaying) clRamp.go(100, 100, LINEAR, ONCEFORWARD);
 }
 
 void clamp()
 {
-  clServo.move(clVal);
+  clRamp.update();
+  if (clRamp.isFinished()) clRamp.go(0);
+
+  if (clRamp.isRunning()) clServo.move(750);
+  else clServo.move(clVal);
 }
 
 void pmute()
@@ -182,40 +231,64 @@ void pmute()
   else
   {
     if (isPlaying)
-      pmServo.move(1200); // only mute if plucking
+      pmServo.move(pmTarget); // only mute if plucking
   }
+}
+
+void liftReset() {
+  // init lift stepper
+  if(isInit) lift.move(-160);
+  
+  // pushButton reset
+  if (lSwitch.update()) {
+    if (lSwitch.fallingEdge()) {
+      isInit = false;
+      isReset = true;
+      rgb.set(0, 255, 255);
+
+      digitalWrite(LSLEEP, HIGH);
+      lift.move(1600);
+    }
+  }
+
+  // disable after reset
+  if (lift.distanceToGo() == 0 && isReset) {
+    isReset = false;
+    rgb.set(0, 255, 0);
+    liftZero();
+    digitalWrite(LSLEEP, LOW);
+  }
+}
+
+// set lift reset position as '0'
+void liftZero() {
+  lift.setCurrentPosition(0);
+  lift.setMaxSpeed(20000);
+  lift.setAcceleration(40000);
 }
 
 void talosNoteOn(byte channel, byte note, byte velocity)
 {
-  isPlaying = true;
-  if (note == 10)
-  {
-    pmuteOn = false;
-  }
-  else if (note == 11)
-  {
-    pmuteOn = true;
-  }
-  else if (note == 20)
-  {
-    tremOn = false;
-  }
-  else if (note == 21)
-  {
-    tremOn = true;
-  }
-  else
-  {
-    armHandler.applyPos(note, dynaMove);
-    clamperHandler.applyPos(note, setClamper);
-    uint32_t pickSpeed = tremOn ? 800 : 80;
-    stpMove(wheel, WSLEEP, pickSpeed);
-  }
+  clamperHandler.applyPos(note, playNote);
+  armHandler.applyPos(note, dynaMove);
 }
 
 void talosNoteOff(byte channel, byte note, byte velocity)
 {
+  releaseNote(velocity);
+  if (tremOn) digitalWrite(WSLEEP, LOW);
+
   isPlaying = false;
-  clamperHandler.applyPos(velocity, setClamper);
+}
+
+void talosControlChange(byte channel, byte control, byte value)
+{
+  if (control == 0)
+  {
+    tremOn = value > 0;
+  }
+  else if (control == 1)
+  {
+    pmuteOn = value > 0;
+  }
 }
