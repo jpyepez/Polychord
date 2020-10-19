@@ -37,7 +37,7 @@ fun void sendMsg(int data1, int data2, int data3) {
 }
 
 fun void pluck(int midiNote, dur len) {
-    sendMsg(0x90, midiNote, 127);
+    sendMsg(0x90, midiNote, Math.random2(10, 100));
     .5::len => now;
     sendMsg(0x80, midiNote, 0);
     .5::len => now;

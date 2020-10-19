@@ -63,6 +63,7 @@ bool isPlaying;
 
 UServo clServo(34);
 rampInt clRamp;
+int clRampDur = 100; // ramp duration in ms
 uint32_t clVal;
 
 UServo pmServo(33);
@@ -139,8 +140,7 @@ void setup()
 
 void loop()
 {
-  if(!isInit) usbMIDI.read();
-  Serial.println(lift.currentPosition());
+  if (!isInit) usbMIDI.read();
 
   liftReset();
   vel();
@@ -181,7 +181,7 @@ void pluck()
 }
 
 void vel() {
-  if(lift.distanceToGo() == 0 && !isInit) {
+  if (lift.distanceToGo() == 0 && !isInit) {
     digitalWrite(LSLEEP, LOW);
   }
 }
@@ -192,7 +192,7 @@ void dynaMove(int target)
   //Dynamixel.ledStatus(MX64ID, 1);
 }
 
-void playNote(int target)
+void playNote(int target, int velocity)
 {
   isPlaying = true;
 
@@ -201,7 +201,8 @@ void playNote(int target)
   clVal = target;
   // lift move
   digitalWrite(LSLEEP, HIGH);
-  lift.moveTo(random(-800, 0)); // TODO: map velocities
+  int liftPos = map(velocity, 0, 127, 0, -800);
+  lift.moveTo(liftPos);
   // pluck (or start plucking)
   digitalWrite(WSLEEP, HIGH);
   if (!tremOn) wheel.move(80);
@@ -210,7 +211,7 @@ void playNote(int target)
 void releaseNote(int target)
 {
   clVal = target;
-  if (isPlaying) clRamp.go(100, 100, LINEAR, ONCEFORWARD);
+  if (isPlaying) clRamp.go(100, clRampDur, LINEAR, ONCEFORWARD);
 }
 
 void clamp()
@@ -218,8 +219,13 @@ void clamp()
   clRamp.update();
   if (clRamp.isFinished()) clRamp.go(0);
 
-  if (clRamp.isRunning()) clServo.move(750);
-  else clServo.move(clVal);
+  if (clRamp.isRunning()) {
+    if(clRamp.getValue() < clRampDur/2) {
+      clServo.move(950);
+    } else {
+      clServo.move(750);
+    }
+  } else clServo.move(clVal);
 }
 
 void pmute()
@@ -237,8 +243,8 @@ void pmute()
 
 void liftReset() {
   // init lift stepper
-  if(isInit) lift.move(-160);
-  
+  if (isInit) lift.move(-160);
+
   // pushButton reset
   if (lSwitch.update()) {
     if (lSwitch.fallingEdge()) {
@@ -269,7 +275,7 @@ void liftZero() {
 
 void talosNoteOn(byte channel, byte note, byte velocity)
 {
-  clamperHandler.applyPos(note, playNote);
+  clamperHandler.applyPos(note, velocity, playNote);
   armHandler.applyPos(note, dynaMove);
 }
 

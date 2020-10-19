@@ -44,6 +44,7 @@ int NoteHandler::lookupPos(int midiNote)
 }
 
 typedef void (*callback)(int);
+typedef void (*callback2)(int, int);
 
 // look up position and apply callback
 void NoteHandler::applyPos(int midiNote, callback cb)
@@ -51,4 +52,11 @@ void NoteHandler::applyPos(int midiNote, callback cb)
     int pos = lookupPos(midiNote);
     if (pos != -1)
         cb(pos);
+}
+
+void NoteHandler::applyPos(int midiNote, int velocity, callback2 cb)
+{
+    int pos = lookupPos(midiNote);
+    if (pos != -1)
+        cb(pos, velocity);
 }
