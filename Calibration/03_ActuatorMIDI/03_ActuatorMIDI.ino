@@ -46,10 +46,10 @@ RGB rgb(RPIN, GPIN, BPIN);
 
 
 // NoteHandler setup
-const int NOTES = 6;
-int midiNotes[NOTES] = {59, 60, 61, 62, 63, 64};
-int pos[NOTES - 1] = {500, 600, 700, 800, 900}; // Arm position array does not include open string
-int clPos[NOTES] = {0, 500, 500, 500, 500, 500};
+const int NOTES = 9;
+int midiNotes[NOTES] = {63, 64, 65, 66, 67, 68, 69, 70, 71};
+int pos[NOTES - 1] = {340, 460, 540, 620, 680, 730, 780, 820}; // Arm position array does not include open string
+int clPos[NOTES] = {0, 600, 600, 600, 575, 575, 525, 525, 500};
 NoteHandler armHandler(midiNotes + 1, pos, NOTES - 1);
 NoteHandler clamperHandler(midiNotes, clPos, NOTES);
 bool isPlaying;
@@ -216,28 +216,36 @@ void releaseNote(int target)
 
 void clamp()
 {
-  clRamp.update();
-  if (clRamp.isFinished()) clRamp.go(0);
+  if (isInit) {
+    clServo.move(750);  // init servo
+  } else {
+    clRamp.update();
+    if (clRamp.isFinished()) clRamp.go(0);
 
-  if (clRamp.isRunning()) {
-    if(clRamp.getValue() < clRampDur/2) {
-      clServo.move(950);
-    } else {
-      clServo.move(750);
-    }
-  } else clServo.move(clVal);
+    if (clRamp.isRunning()) {
+      if (clRamp.getValue() < clRampDur / 2) {
+        clServo.move(950);
+      } else {
+        clServo.move(750);
+      }
+    } else clServo.move(clVal);
+  }
 }
 
 void pmute()
 {
-  if (!pmuteOn)
-  {
-    pmServo.move(0);
-  }
-  else
-  {
-    if (isPlaying)
-      pmServo.move(pmTarget); // only mute if plucking
+  if (isInit) {
+    pmServo.move(750);  // init servo
+  } else {
+    if (!pmuteOn)
+    {
+      pmServo.move(0);
+    }
+    else
+    {
+      if (isPlaying)
+        pmServo.move(pmTarget); // only mute if plucking
+    }
   }
 }
 
