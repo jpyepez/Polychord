@@ -16,7 +16,11 @@ Metro servoMetro = Metro(1000);
 // clamper: clamp < 750 < damp
 // pmute: 750 < mute
 
-UServo clamper(33);
+// AzureTalos/Protochord
+// clamper: 34
+// palm mute: 33
+
+UServo clamper(34);
 // int clamperTargets[] = {750};
 // int clamperTargets[] = {300, 1200};
 // int clamperTargets[] = {0, 600, 600, 600, 600, 600, 575, 550};

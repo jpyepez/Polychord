@@ -6,6 +6,17 @@ MidiMsg msg;
 // open MIDI device
 mout.open(1);
 
+// string notes
+[   [63, 64, 65, 66, 67, 68, 69, 70, 71], 
+    [58, 59, 60, 61, 62, 63, 64, 65, 66], 
+    [54, 55, 56, 57, 58, 59, 60, 61, 62], 
+    [49, 50, 51, 52, 53, 54, 55, 56, 57], 
+    [44, 45, 46, 47, 48, 49, 50, 51, 52], 
+    [39, 40, 41, 42, 43, 44, 45, 46, 47]] @=> int notes[][]; 
+
+0 => int counter;
+6 => int string_id; // strings 1--6
+
 // initialize performance modes
 // tremolo mode: 0
 sendMsg(0xB0, 0, 0);
@@ -20,15 +31,10 @@ while(second => now);
 
 fun void melody() {
     while(true) {
-        pluck(63, 2::second);
-        pluck(64, 2::second);
-        pluck(65, 2::second);
-        pluck(66, 2::second);
-        pluck(67, 2::second);
-        pluck(68, 2::second);
-        pluck(69, 2::second);
-        pluck(70, 2::second);
-        pluck(71, 2::second);
+        pluck(notes[string_id-1][counter], 2::second);
+        (counter + 1) % notes[string_id-1].size() => counter;
+        // (counter + 1) % 6 => counter;
+        // 0 => counter;
     }
 }
 
@@ -43,7 +49,7 @@ fun void sendMsg(int data1, int data2, int data3) {
 }
 
 fun void pluck(int midiNote, dur len) {
-    sendMsg(0x90, midiNote, 100);
+    sendMsg(0x90, midiNote, 60);
     .5::len => now;
     sendMsg(0x80, midiNote, 0);
     .5::len => now;

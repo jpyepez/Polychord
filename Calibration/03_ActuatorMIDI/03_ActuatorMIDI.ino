@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 1
+#define UNIT_ID 6
 
 // RGB Setup
 #define RPIN 36
@@ -46,12 +46,44 @@ RGB rgb(RPIN, GPIN, BPIN);
 
 
 // NoteHandler setup
+// Arm position array does not include open string
 const int NOTES = 9;
-int midiNotes[NOTES] = {63, 64, 65, 66, 67, 68, 69, 70, 71};
-int pos[NOTES - 1] = {340, 460, 540, 620, 680, 730, 780, 820}; // Arm position array does not include open string
-int clPos[NOTES] = {0, 600, 600, 600, 575, 575, 525, 525, 500};
-NoteHandler armHandler(midiNotes + 1, pos, NOTES - 1);
-NoteHandler clamperHandler(midiNotes, clPos, NOTES);
+
+// available midi notes
+// Standard Eb tuning
+// consider using standard E MIDI messages
+int midiNotes[6][NOTES] = {
+  {63, 64, 65, 66, 67, 68, 69, 70, 71},
+  {58, 59, 60, 61, 62, 63, 64, 65, 66},
+  {54, 55, 56, 57, 58, 59, 60, 61, 62},
+  {49, 50, 51, 52, 53, 54, 55, 56, 57},
+  {44, 45, 46, 47, 48, 49, 50, 51, 52},
+  {39, 40, 41, 42, 43, 44, 45, 46, 47}
+};
+
+// robot arm positions
+int pos[6][NOTES - 1] = {
+  {340, 460, 540, 620, 680, 730, 780, 825},
+  {320, 400, 485, 560, 615, 665, 720, 760},
+  {320, 390, 490, 550, 610, 660, 710, 760},
+  {190, 290, 360, 420, 490, 550, 605, 640},
+  {340, 440, 500, 550, 600, 660, 705, 750 },
+  {460, 540, 620, 690, 745, 810, 845, 880}
+};
+
+// clamping force values
+int clPos[6][NOTES] = {
+  {0, 600, 600, 600, 600, 600, 600, 585, 585},
+  {0, 625, 625, 625, 625, 625, 625, 625, 615},
+  {0, 625, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 630, 630}
+};
+
+
+NoteHandler armHandler(midiNotes[UNIT_ID-1] + 1, pos[UNIT_ID-1], NOTES - 1);
+NoteHandler clamperHandler(midiNotes[UNIT_ID-1], clPos[UNIT_ID-1], NOTES);
 bool isPlaying;
 
 // CLAMPER SETUP
@@ -136,6 +168,7 @@ void setup()
   Serial.println("CC Commands:");
   Serial.println("0 - Tremolo picking");
   Serial.println("1 - Palm mute");
+
 }
 
 void loop()
@@ -188,6 +221,7 @@ void vel() {
 
 void dynaMove(int target)
 {
+  Serial.println(target);
   Dynamixel.moveSpeed(MX64ID, target, 256);
   //Dynamixel.ledStatus(MX64ID, 1);
 }
@@ -224,7 +258,8 @@ void clamp()
 
     if (clRamp.isRunning()) {
       if (clRamp.getValue() < clRampDur / 2) {
-        clServo.move(950);
+        clServo.move(0);
+        //clServo.move(950);  // mute string
       } else {
         clServo.move(750);
       }
