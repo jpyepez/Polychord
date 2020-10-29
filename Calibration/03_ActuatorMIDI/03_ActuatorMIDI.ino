@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 6
+#define UNIT_ID 1
 
 // RGB Setup
 #define RPIN 36
@@ -43,7 +43,6 @@
 // Cyan: Lift Reset
 // Green: Ready
 RGB rgb(RPIN, GPIN, BPIN);
-
 
 // NoteHandler setup
 // Arm position array does not include open string
@@ -81,10 +80,8 @@ int clPos[6][NOTES] = {
   {0, 625, 625, 625, 625, 625, 625, 630, 630}
 };
 
-
 NoteHandler armHandler(midiNotes[UNIT_ID-1] + 1, pos[UNIT_ID-1], NOTES - 1);
 NoteHandler clamperHandler(midiNotes[UNIT_ID-1], clPos[UNIT_ID-1], NOTES);
-bool isPlaying;
 
 // CLAMPER SETUP
 /////////////////
@@ -95,11 +92,11 @@ bool isPlaying;
 
 UServo clServo(34);
 rampInt clRamp;
-int clRampDur = 100; // ramp duration in ms
+int dampVal = 850;     // clamper damping value
+int clRampDur = 250;  // ramp duration in ms
 uint32_t clVal;
 
 UServo pmServo(33);
-bool pmuteOn;
 uint32_t pmTarget;
 
 // STEPPER SETUP
@@ -108,17 +105,27 @@ uint32_t pmTarget;
 AccelStepper wheel(AccelStepper::DRIVER, WSTEP, WDIR);
 int wPins[] = {WMS0, WMS1, WMS2};
 bool wModes[] = {false, true, false};
-bool tremOn;
 
 AccelStepper lift(AccelStepper::DRIVER, LSTEP, LDIR);
 int lPins[] = {LMS0, LMS1, LMS2};
 bool lModes[] = {false, true, false};
-bool isInit = true;
-bool isReset = false;
 
 // limit switch setup
 const int switchPin = 14;
 Bounce lSwitch = Bounce(switchPin, 10); // arg#2 is debounce time in ms
+
+// STATUS/PERFORMANCE MODES
+/////////////////
+
+bool isInit = true;
+bool isReset = false;
+bool isPlaying;
+
+bool tremOn;
+bool pmuteOn;
+bool ghostOn;
+int slideSpeed;
+
 
 void setup()
 {
@@ -139,6 +146,7 @@ void setup()
   clRamp.go(0);
   pmServo.init();
   pmuteOn = false;
+  ghostOn = false;
 
   // palm mute target
   pmTarget = (UNIT_ID < 4) ? 300 : 1200;
@@ -160,6 +168,7 @@ void setup()
   pinMode(2, OUTPUT);
   Dynamixel.begin(1000000, 2, 4);
   Dynamixel.setAngleLimit(1, 250, 1200);
+  slideSpeed = 256;
 
   // print instructions
   Serial.println("Azure Talos MIDI Integration");
@@ -168,6 +177,8 @@ void setup()
   Serial.println("CC Commands:");
   Serial.println("0 - Tremolo picking");
   Serial.println("1 - Palm mute");
+  Serial.println("2 - Ghost notes");
+  Serial.println("3 - Slide speed");
 
 }
 
@@ -221,8 +232,7 @@ void vel() {
 
 void dynaMove(int target)
 {
-  Serial.println(target);
-  Dynamixel.moveSpeed(MX64ID, target, 256);
+  Dynamixel.moveSpeed(MX64ID, target, slideSpeed);
   //Dynamixel.ledStatus(MX64ID, 1);
 }
 
@@ -231,8 +241,11 @@ void playNote(int target, int velocity)
   isPlaying = true;
 
   // clamp note
-  if (clRamp.isRunning()) clRamp.go(0);
-  clVal = target;
+  if (clRamp.isRunning()) clRamp.go(0); // reset ramp on note-on
+  
+  // set target/check ghost mode
+  clVal = ghostOn ? dampVal : target;
+  
   // lift move
   digitalWrite(LSLEEP, HIGH);
   int liftPos = map(velocity, 0, 127, 0, -800);
@@ -257,9 +270,8 @@ void clamp()
     if (clRamp.isFinished()) clRamp.go(0);
 
     if (clRamp.isRunning()) {
-      if (clRamp.getValue() < clRampDur / 2) {
-        clServo.move(0);
-        //clServo.move(950);  // mute string
+      if (clRamp.getValue() < 80) {
+        clServo.move(dampVal);  // mute string
       } else {
         clServo.move(750);
       }
@@ -339,5 +351,13 @@ void talosControlChange(byte channel, byte control, byte value)
   else if (control == 1)
   {
     pmuteOn = value > 0;
+  }
+  else if (control == 2)
+  {
+    ghostOn = value > 0;
+  }
+  else if (control == 3)
+  {
+    slideSpeed = constrain(map(value, 0, 127, 1, 1023), 1, 1023);
   }
 }
