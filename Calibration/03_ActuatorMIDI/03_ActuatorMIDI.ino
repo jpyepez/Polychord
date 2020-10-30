@@ -80,8 +80,11 @@ int clPos[6][NOTES] = {
   {0, 625, 625, 625, 625, 625, 625, 630, 630}
 };
 
-NoteHandler armHandler(midiNotes[UNIT_ID-1] + 1, pos[UNIT_ID-1], NOTES - 1);
-NoteHandler clamperHandler(midiNotes[UNIT_ID-1], clPos[UNIT_ID-1], NOTES);
+// damping angle values
+int dampVal[6] = {850, 905, 875, 875, 875, 875};
+
+NoteHandler armHandler(midiNotes[UNIT_ID - 1] + 1, pos[UNIT_ID - 1], NOTES - 1);
+NoteHandler clamperHandler(midiNotes[UNIT_ID - 1], clPos[UNIT_ID - 1], NOTES);
 
 // CLAMPER SETUP
 /////////////////
@@ -92,9 +95,11 @@ NoteHandler clamperHandler(midiNotes[UNIT_ID-1], clPos[UNIT_ID-1], NOTES);
 
 UServo clServo(34);
 rampInt clRamp;
-int dampVal = 850;     // clamper damping value
-int clRampDur = 250;  // ramp duration in ms
+int clRampDur = 350;  // ramp duration in ms
+rampInt openRamp;
+int openRampDur = 100;
 uint32_t clVal;
+
 
 UServo pmServo(33);
 uint32_t pmTarget;
@@ -144,6 +149,7 @@ void setup()
   // servomotors init
   clServo.init();
   clRamp.go(0);
+  openRamp.go(0);
   pmServo.init();
   pmuteOn = false;
   ghostOn = false;
@@ -242,10 +248,14 @@ void playNote(int target, int velocity)
 
   // clamp note
   if (clRamp.isRunning()) clRamp.go(0); // reset ramp on note-on
-  
+
+  if (target == 0) {
+    openRamp.go(100, openRampDur, LINEAR, ONCEFORWARD);
+  }
+
   // set target/check ghost mode
-  clVal = ghostOn ? dampVal : target;
-  
+  clVal = ghostOn ? dampVal[UNIT_ID - 1] : target;
+
   // lift move
   digitalWrite(LSLEEP, HIGH);
   int liftPos = map(velocity, 0, 127, 0, -800);
@@ -267,15 +277,23 @@ void clamp()
     clServo.move(750);  // init servo
   } else {
     clRamp.update();
+    openRamp.update();
+
     if (clRamp.isFinished()) clRamp.go(0);
 
     if (clRamp.isRunning()) {
       if (clRamp.getValue() < 80) {
-        clServo.move(dampVal);  // mute string
+        clServo.move(dampVal[UNIT_ID - 1]); // mute string
       } else {
         clServo.move(750);
       }
-    } else clServo.move(clVal);
+    } else {
+      if (openRamp.isRunning()) {
+        clServo.move(750);
+      } else {
+        clServo.move(clVal);
+      }
+    }
   }
 }
 

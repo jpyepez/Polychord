@@ -14,12 +14,12 @@ mout.open(1);
     [44, 45, 46, 47, 48, 49, 50, 51, 52], 
     [39, 40, 41, 42, 43, 44, 45, 46, 47]] @=> int notes[][]; 
 
-0 => int counter;
 1 => int string_id; // strings 1--6
+0 => int counter;
 
 // initialize performance modes
 // tremolo mode: 0
-sendMsg(0xB0, 0, 1);
+sendMsg(0xB0, 0, 0);
 
 // palm mute: 1
 sendMsg(0xB0, 1, 0);
@@ -28,7 +28,7 @@ sendMsg(0xB0, 1, 0);
 sendMsg(0xB0, 2, 0);
 
 // slide speed: 3
-sendMsg(0xB0, 3, 4);
+sendMsg(0xB0, 3, 32);
 
 // spork
 spork ~ melody();
@@ -55,7 +55,7 @@ fun void sendMsg(int data1, int data2, int data3) {
 }
 
 fun void pluck(int midiNote, dur len) {
-    sendMsg(0x90, midiNote, 20);
+    sendMsg(0x90, midiNote, 80);
     .5::len => now;
     sendMsg(0x80, midiNote, 0);
     .5::len => now;
