@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 1
+#define UNIT_ID 3
 
 // RGB Setup
 #define RPIN 36
@@ -46,42 +46,47 @@ RGB rgb(RPIN, GPIN, BPIN);
 
 // NoteHandler setup
 // Arm position array does not include open string
-const int NOTES = 9;
+const int NOTES = 8;
 
 // available midi notes
 // Standard Eb tuning
 // consider using standard E MIDI messages
 int midiNotes[6][NOTES] = {
-  {63, 64, 65, 66, 67, 68, 69, 70, 71},
-  {58, 59, 60, 61, 62, 63, 64, 65, 66},
-  {54, 55, 56, 57, 58, 59, 60, 61, 62},
-  {49, 50, 51, 52, 53, 54, 55, 56, 57},
-  {44, 45, 46, 47, 48, 49, 50, 51, 52},
-  {39, 40, 41, 42, 43, 44, 45, 46, 47}
+  {63, 64, 65, 66, 67, 68, 69, 70},
+  {58, 59, 60, 61, 62, 63, 64, 65},
+  {54, 55, 56, 57, 58, 59, 60, 61},
+  {49, 50, 51, 52, 53, 54, 55, 56},
+  {44, 45, 46, 47, 48, 49, 50, 51},
+  {39, 40, 41, 42, 43, 44, 45, 46}
 };
 
 // robot arm positions
 int pos[6][NOTES - 1] = {
-  {340, 460, 540, 620, 680, 730, 780, 825},
-  {320, 400, 485, 560, 615, 665, 720, 760},
-  {320, 390, 490, 550, 610, 660, 710, 760},
-  {190, 290, 360, 420, 490, 550, 605, 640},
-  {340, 440, 500, 550, 600, 660, 705, 750 },
-  {460, 540, 620, 690, 745, 810, 845, 880}
+  {340, 460, 540, 620, 680, 730, 780},  // 1st: done
+  {325, 420, 500, 562, 620, 685, 740},  // 2nd: done
+  {310, 410, 490, 562, 615, 665, 725},  // 3rd: done  
+  {190, 290, 360, 420, 490, 550, 605},  // 4th:
+  {340, 440, 500, 550, 600, 660, 705},  // 5th:
+  {460, 540, 620, 690, 745, 810, 845}   // 6th:
 };
 
 // clamping force values
 int clPos[6][NOTES] = {
-  {0, 600, 600, 600, 600, 600, 600, 585, 585},
-  {0, 625, 625, 625, 625, 625, 625, 625, 615},
-  {0, 625, 625, 625, 625, 625, 625, 625, 625},
-  {0, 625, 625, 625, 625, 625, 625, 625, 625},
-  {0, 625, 625, 625, 625, 625, 625, 625, 625},
-  {0, 625, 625, 625, 625, 625, 625, 630, 630}
+  {0, 600, 600, 600, 600, 600, 600, 585},
+  {0, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 625},
+  {0, 625, 625, 625, 625, 625, 625, 630}
 };
 
 // damping angle values
 int dampVal[6] = {850, 905, 875, 875, 875, 875};
+
+// PID Values
+int PGain[6] = {150, 150, 200, 150, 150, 150};
+int IGain[6] = {20, 20, 20, 20, 20, 20};
+int DGain[6] = {0, 0, 0, 0, 0, 0};
 
 NoteHandler armHandler(midiNotes[UNIT_ID - 1] + 1, pos[UNIT_ID - 1], NOTES - 1);
 NoteHandler clamperHandler(midiNotes[UNIT_ID - 1], clPos[UNIT_ID - 1], NOTES);
@@ -173,7 +178,10 @@ void setup()
   Serial1.setRX(0);
   pinMode(2, OUTPUT);
   Dynamixel.begin(1000000, 2, 4);
-  Dynamixel.setAngleLimit(1, 250, 1200);
+  Dynamixel.setAngleLimit(MX64ID, 150, 1000);
+  Dynamixel.setPGain(MX64ID, PGain[UNIT_ID-1]); // 254
+  Dynamixel.setIGain(MX64ID, IGain[UNIT_ID-1]); // 20
+  Dynamixel.setDGain(MX64ID, DGain[UNIT_ID-1]);
   slideSpeed = 256;
 
   // print instructions
