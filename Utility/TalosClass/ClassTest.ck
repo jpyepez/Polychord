@@ -4,8 +4,8 @@
 // RegEx.match("ATString\\d", mout.name()) => int test;
 // <<< "Regex: " + test >>>;
 
-3 => int str_id;
-1 => int port;
+2 => int str_id;
+3 => int port;
 
 TalosString talos;
 talos.init(str_id, port);
@@ -16,8 +16,8 @@ talos.setMode(3, 16);
 0 => int counter;
 
 // spork
-spork ~ chromatic();
-// spork ~ major();
+// spork ~ chromatic();
+spork ~ major();
 // spork ~ minor();
 // spork ~ phrygian();
 // spork ~ lydian();

@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 3
+#define UNIT_ID 6
 
 // RGB Setup
 #define RPIN 36
@@ -64,10 +64,10 @@ int midiNotes[6][NOTES] = {
 int pos[6][NOTES - 1] = {
   {340, 460, 540, 620, 680, 730, 780},  // 1st: done
   {325, 420, 500, 562, 620, 685, 740},  // 2nd: done
-  {310, 410, 490, 562, 615, 665, 725},  // 3rd: done  
-  {190, 290, 360, 420, 490, 550, 605},  // 4th:
-  {340, 440, 500, 550, 600, 660, 705},  // 5th:
-  {460, 540, 620, 690, 745, 810, 845}   // 6th:
+  {310, 410, 490, 562, 615, 665, 725},  // 3rd: done
+  {190, 290, 360, 430, 500, 560, 610},  // 4th: done
+  {355, 430, 490, 550, 600, 660, 715},  // 5th: done
+  {460, 540, 640, 710, 760, 795, 828}   // 6th:
 };
 
 // clamping force values
@@ -77,14 +77,14 @@ int clPos[6][NOTES] = {
   {0, 625, 625, 625, 625, 625, 625, 625},
   {0, 625, 625, 625, 625, 625, 625, 625},
   {0, 625, 625, 625, 625, 625, 625, 625},
-  {0, 625, 625, 625, 625, 625, 625, 630}
+  {0, 625, 625, 625, 625, 625, 550, 550}
 };
 
 // damping angle values
-int dampVal[6] = {850, 905, 875, 875, 875, 875};
+int dampVal[6] = {850, 885, 875, 885, 950, 950};
 
 // PID Values
-int PGain[6] = {150, 150, 200, 150, 150, 150};
+int PGain[6] = {120, 200, 200, 200, 200, 200};
 int IGain[6] = {20, 20, 20, 20, 20, 20};
 int DGain[6] = {0, 0, 0, 0, 0, 0};
 
@@ -179,10 +179,10 @@ void setup()
   pinMode(2, OUTPUT);
   Dynamixel.begin(1000000, 2, 4);
   Dynamixel.setAngleLimit(MX64ID, 150, 1000);
-  Dynamixel.setPGain(MX64ID, PGain[UNIT_ID-1]); // 254
-  Dynamixel.setIGain(MX64ID, IGain[UNIT_ID-1]); // 20
-  Dynamixel.setDGain(MX64ID, DGain[UNIT_ID-1]);
-  slideSpeed = 256;
+  Dynamixel.setPGain(MX64ID, PGain[UNIT_ID - 1]); // 254
+  Dynamixel.setIGain(MX64ID, IGain[UNIT_ID - 1]); // 20
+  Dynamixel.setDGain(MX64ID, DGain[UNIT_ID - 1]);
+  slideSpeed = 128;
 
   // print instructions
   Serial.println("Azure Talos MIDI Integration");
@@ -290,16 +290,12 @@ void clamp()
     if (clRamp.isFinished()) clRamp.go(0);
 
     if (clRamp.isRunning()) {
-      if (clRamp.getValue() < 80) {
-        clServo.move(dampVal[UNIT_ID - 1]); // mute string
-      } else {
-        clServo.move(750);
-      }
+      clServo.move(dampVal[UNIT_ID - 1]); // mute string
     } else {
       if (openRamp.isRunning()) {
-        clServo.move(750);
+        clServo.move(750);                // open string
       } else {
-        clServo.move(clVal);
+        clServo.move(clVal);              // clamped notes
       }
     }
   }

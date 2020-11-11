@@ -1,3 +1,7 @@
+// TalosString Class
+// Connect and control Azure Talos in ChucK
+
+
 public class TalosString {
 
     MidiOut mout;
