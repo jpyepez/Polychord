@@ -1,11 +1,13 @@
 
 
-//[1, 3, 2, 4, 5, 6] @=> int talosPorts[];
+//[2, 5, 3, 4, 1, 6] @=> int talosPorts[];
+// TODO: record COM ports for each
 
-6 => int str_id;
+5 => int str_id;
+1 => int port;
 
 TalosString talos;
-talos.init(str_id, 1);
+talos.init(str_id, port);
 //talos.printNotes();
 
 // ghost note mode
@@ -23,6 +25,7 @@ talos.init(str_id, 1);
 
 
 while(true) {
+    talos.pluck(0, 80, second);
     second => now;
 }
 
