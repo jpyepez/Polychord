@@ -1,8 +1,8 @@
 
 
-[1, 3, 2, 4, 5, 6] @=> int talosPorts[];
+[2, 5, 3, 4, 1, 6] @=> int talosPorts[];
 
-3 => int str_id;
+1 => int str_id;
 
 TalosString talos;
 talos.init(str_id, talosPorts[str_id-1]);
@@ -20,7 +20,7 @@ talos.setMode(3, 16);
 // spork ~ lydian();
 
 while(second => now) {
-    talos.pluck(5, 80, second);
+    talos.pluck(0, 90, 5::second);
 }
 
 fun void chromatic() {

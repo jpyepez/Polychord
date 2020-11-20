@@ -79,11 +79,18 @@ public class TalosString {
         mout.send(msg);
     }
 
+
     fun void pluck(int pos, int vel, dur len) {
         sendMsg(0x90, notes[id-1][pos], vel);
         len => now;
         sendMsg(0x80, notes[id-1][pos], 0);
     }
+
+    fun void pluckOn(int pos, int vel, dur len) {
+        sendMsg(0x90, notes[id-1][pos], vel);
+        len => now;
+    }
+    
 
     fun void setMode(int data, int value) {
         sendMsg(0xB0, data, value);
