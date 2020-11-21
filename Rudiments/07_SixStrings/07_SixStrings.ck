@@ -66,7 +66,6 @@ while(true) {
 // sporkable pluck function
 fun void playTalos(int str, int pos, dur len) {
     talos[str].pluck(pos, 80, len);
-    len => now;
 }
 
 fun void c_chord(dur len) {
