@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 6
+#define UNIT_ID 4
 
 // RGB Setup
 #define RPIN 36
@@ -81,12 +81,16 @@ int clPos[6][NOTES] = {
 };
 
 // damping angle values
-int dampVal[6] = {850, 885, 875, 885, 950, 950};
+int dampVal[6] = {850, 900, 925, 885, 900, 935};
 
 // PID Values
 int PGain[6] = {120, 200, 200, 200, 200, 200};
 int IGain[6] = {20, 20, 20, 20, 20, 20};
 int DGain[6] = {0, 0, 0, 0, 0, 0};
+
+// lift setup
+int liftStart[6] = {1600, 1600, 1600, 1250, 1300, 1600};
+int liftRange[6] = {600, 600, 500, 500, 500, 500};
 
 NoteHandler armHandler(midiNotes[UNIT_ID - 1] + 1, pos[UNIT_ID - 1], NOTES - 1);
 NoteHandler clamperHandler(midiNotes[UNIT_ID - 1], clPos[UNIT_ID - 1], NOTES);
@@ -266,7 +270,7 @@ void playNote(int target, int velocity)
 
   // lift move
   digitalWrite(LSLEEP, HIGH);
-  int liftPos = map(velocity, 0, 127, 0, -800);
+  int liftPos = map(velocity, 0, 127, 0, -liftRange[UNIT_ID-1]);
   lift.moveTo(liftPos);
   // pluck (or start plucking)
   digitalWrite(WSLEEP, HIGH);
@@ -330,7 +334,7 @@ void liftReset() {
       rgb.set(0, 255, 255);
 
       digitalWrite(LSLEEP, HIGH);
-      lift.move(1600);
+      lift.move(liftStart[UNIT_ID-1]);
     }
   }
 
