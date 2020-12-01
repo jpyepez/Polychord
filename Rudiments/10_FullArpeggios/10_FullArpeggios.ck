@@ -129,14 +129,17 @@ fun void progC(dur len) {
 fun void progD(dur len) {
     patD.size() => int totalDur;
 
-    spork ~ playArp(a_major, patD, len);
-    totalDur::len => now;
-    spork ~ playArp(c_major, patD, len);
-    totalDur::len => now;
-    spork ~ playArp(f_major, patD, len);
-    totalDur::len => now;
-    spork ~ playArp(g_major, patD, len);
-    totalDur::len => now;
+    repeat(2) {
+        spork ~ playArp(a_major, patD, len);
+        totalDur::len => now;
+        spork ~ playArp(c_major, patD, len);
+        totalDur::len => now;
+        spork ~ playArp(f_major, patD, len);
+        totalDur::len => now;
+        spork ~ playArp(g_major, patD, len);
+        totalDur::len => now;
+    }
+
     spork ~ playArp(a_major, patD, len);
     totalDur::len => now;
     spork ~ playArp(a_major, patD, len);

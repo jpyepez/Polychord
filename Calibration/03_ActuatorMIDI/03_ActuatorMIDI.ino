@@ -63,7 +63,7 @@ int midiNotes[6][NOTES] = {
 // robot arm positions
 int pos[6][NOTES - 1] = {
   {340, 460, 540, 620, 680, 730, 780},  // 1st: done
-  {325, 420, 500, 562, 620, 685, 740},  // 2nd: done
+  {325, 420, 500, 562, 640, 685, 740},  // 2nd: done
   {310, 410, 490, 562, 615, 665, 725},  // 3rd: done
   {190, 290, 360, 430, 500, 560, 610},  // 4th: done
   {355, 430, 490, 550, 600, 660, 715},  // 5th: done
@@ -89,8 +89,8 @@ int IGain[6] = {20, 20, 20, 20, 20, 20};
 int DGain[6] = {0, 0, 0, 0, 0, 0};
 
 // lift setup
-int liftStart[6] = {1600, 1600, 1600, 1250, 1300, 1600};
-int liftRange[6] = {600, 600, 500, 500, 500, 500};
+int liftStart[6] = {1600, 1300, 1300, 1350, 1300, 1600};
+int liftRange[6] = {600, 500, 500, 400, 500, 500};
 
 NoteHandler armHandler(midiNotes[UNIT_ID - 1] + 1, pos[UNIT_ID - 1], NOTES - 1);
 NoteHandler clamperHandler(midiNotes[UNIT_ID - 1], clPos[UNIT_ID - 1], NOTES);
@@ -370,19 +370,19 @@ void talosNoteOff(byte channel, byte note, byte velocity)
 
 void talosControlChange(byte channel, byte control, byte value)
 {
-  if (control == 0)
+  if (control == 20)
   {
     tremOn = value > 0;
   }
-  else if (control == 1)
+  else if (control == 21)
   {
     pmuteOn = value > 0;
   }
-  else if (control == 2)
+  else if (control == 22)
   {
     ghostOn = value > 0;
   }
-  else if (control == 3)
+  else if (control == 23)
   {
     slideSpeed = constrain(map(value, 0, 127, 1, 1023), 1, 1023);
   }

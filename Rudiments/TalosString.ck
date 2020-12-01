@@ -29,17 +29,17 @@ public class TalosString {
     fun void initModes() {
 
         // initialize performance modes
-        // tremolo mode: 0
-        setMode(0, 0);
+        // tremolo mode: 20
+        setMode(20, 0);
 
-        // palm mute: 1
-        setMode(1, 0);
+        // palm mute: 21
+        setMode(21, 0);
 
-        // ghost notes: 2
-        setMode(2, 0);
+        // ghost notes: 22
+        setMode(22, 0);
 
-        // slide speed: 3
-        setMode(3, 16);
+        // slide speed: 23
+        setMode(23, 16);
     }
 
 
