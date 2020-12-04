@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 4
+#define UNIT_ID 3
 
 // RGB Setup
 #define RPIN 36
@@ -89,7 +89,7 @@ int IGain[6] = {20, 20, 20, 20, 20, 20};
 int DGain[6] = {0, 0, 0, 0, 0, 0};
 
 // lift setup
-int liftStart[6] = {1600, 1300, 1300, 1350, 1300, 1600};
+int liftStart[6] = {1600, 1300, 1400, 1350, 1300, 1600};
 int liftRange[6] = {600, 500, 500, 400, 500, 500};
 
 NoteHandler armHandler(midiNotes[UNIT_ID - 1] + 1, pos[UNIT_ID - 1], NOTES - 1);
