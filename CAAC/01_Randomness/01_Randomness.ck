@@ -23,6 +23,8 @@ fun void playTalos(int str, int pos, int vel, dur len) {
 //////////////////////////////
 
 Event dice;
+8 => int numCycles;
+0 => int cycles;
 
 Math.srandom(184);
 
@@ -30,13 +32,16 @@ fun void roll(Event d) {
     Math.random2(0, 7) => int num;
     playMelody(num);
 
-    while(true) {
+    while(cycles < numCycles) {
         d => now;
 
         // roll dice and play melody
         Math.random2(0, 7) => num;
         playMelody(num);
+        cycles++;
+        <<< "cycles " + cycles >>>;
     }
+    me.yield();
 }
 
 spork ~ roll(dice);
