@@ -47,24 +47,16 @@ second => dur qtr;
 [.5, .15, .15, .15, .15, .15] @=> float chance6[];
 
 
-for(0 => int i; i<6; i++) {
-    spork ~ playTalos(6-i, g_major[i], 80, second);
-    second => now;
-}
-
-for(0 => int i; i<6; i++) {
-    spork ~ playTalos(6-i, d_minor[i], 80, second);
-    second => now;
-}
-
-while(second => now);
-
-
-// spork ~ playTalos(1, 1, 80, second);
-// second => now;
-// 
-// while(true){
-//     spork ~ playTalos(1, 3, 80, second);
+// for(0 => int i; i<6; i++) {
+//     spork ~ playTalos(6-i, g_major[i], 80, second);
 //     second => now;
 // }
+// 
+// for(0 => int i; i<6; i++) {
+//     spork ~ playTalos(6-i, d_minor[i], 80, second);
+//     second => now;
+// }
+//
+// while(second => now);
+
 
