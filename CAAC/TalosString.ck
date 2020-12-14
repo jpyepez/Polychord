@@ -30,16 +30,16 @@ public class TalosString {
 
         // initialize performance modes
         // tremolo mode: 0
-        setMode(0, 0);
+        setMode(20, 0);
 
         // palm mute: 1
-        setMode(1, 0);
+        setMode(21, 0);
 
         // ghost notes: 2
-        setMode(2, 0);
+        setMode(22, 0);
 
         // slide speed: 3
-        setMode(3, 16);
+        setMode(23, 16);
     }
 
 
