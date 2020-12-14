@@ -6,7 +6,7 @@ TalosString talos[6];
 
 for(0 => int i; i < talos.size(); i++) {
     talos[i].init(i+1, talosPorts[i]);
-    talos[i].setMode(21, 0);
+    talos[i].setMode(21, 1);
 }
 
 
