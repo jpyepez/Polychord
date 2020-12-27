@@ -1,13 +1,13 @@
 
 
-[1, 3, 2, 4, 5, 6] @=> int talosPorts[];
+[2, 5, 3, 4, 1, 6] @=> int talosPorts[];
 
-1 => int str_id;
+3 => int str_id;
 
 TalosString talos;
 talos.init(str_id, talosPorts[str_id-1]);
-//talos.printNotes();
-talos.setMode(3, 16);
+talos.printNotes();
+//talos.setMode(3, 16);
 
 // init counter
 0 => int counter;
@@ -18,7 +18,6 @@ talos.setMode(3, 16);
 // spork ~ minor();
 // spork ~ phrygian();
 spork ~ lydian();
-
 
 while(second => now);
 

@@ -10,7 +10,7 @@
 #include "RGB.h"
 
 // String Unit Setup
-#define UNIT_ID 5
+#define UNIT_ID 2
 
 // RGB Setup
 #define RPIN 36
@@ -63,7 +63,7 @@ int midiNotes[6][NOTES] = {
 // robot arm positions
 int pos[6][NOTES - 1] = {
   {350, 460, 550, 620, 680, 730, 780},  // 1st: done
-  {325, 420, 485, 562, 640, 685, 740},  // 2nd: done
+  {325, 420, 495, 562, 640, 685, 740},  // 2nd: done
   {310, 410, 490, 550, 615, 665, 725},  // 3rd: done
   {190, 295, 360, 430, 500, 560, 610},  // 4th: done
   {355, 408, 480, 550, 600, 660, 715},  // 5th: done

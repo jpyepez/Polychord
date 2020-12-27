@@ -10,7 +10,7 @@ for(0 => int i; i < talos.size(); i++) {
 }
 
 
-.25::second => dur p_len;
+.5::second => dur p_len;
 
 
 // sporkable pluck function

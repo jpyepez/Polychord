@@ -23,7 +23,7 @@ fun void playTalos(int str, int pos, int vel, dur len) {
 //////////////////////////////
 
 Event dice;
-8 => int numCycles;
+10 => int numCycles;
 0 => int cycles;
 
 Math.srandom(184);

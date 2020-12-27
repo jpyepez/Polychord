@@ -18,9 +18,9 @@ fun void playTalos(int str, int pos, dur len) {
     talos[str-1].pluck(pos, 80, len);
 }
 
-spork ~ progA(second);
+// spork ~ progA(second);
 // spork ~ progB(2::second);
-// spork ~ progC(second);
+spork ~ progC(second);
 
 
 while(second => now);

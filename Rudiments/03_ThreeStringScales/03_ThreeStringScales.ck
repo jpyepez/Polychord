@@ -1,6 +1,6 @@
 
 
-[1, 3, 2, 4, 5, 6] @=> int talosPorts[];
+[2, 5, 3, 4, 1, 6] @=> int talosPorts[];
 
 TalosString talos[3];
 
@@ -9,7 +9,7 @@ for(0 => int i; i < talos.size(); i++) {
 }
 
 // spork ~ chromatic(.5::second);
-spork ~ major(.5::second);
+// spork ~ major(.5::second);
 // spork ~ minor(.5::second);
 // spork ~ harmonic_minor(.5::second);
 

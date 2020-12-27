@@ -1,6 +1,6 @@
 
 
-[1, 3, 2, 4, 5, 6] @=> int talosPorts[];
+[2, 5, 3, 4, 1, 6] @=> int talosPorts[];
 
 TalosString talos[3];
 
